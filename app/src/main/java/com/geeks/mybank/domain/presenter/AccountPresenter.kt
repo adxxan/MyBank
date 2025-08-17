@@ -1,6 +1,7 @@
 package com.geeks.mybank.domain.presenter
 
 import com.geeks.mybank.data.model.Account
+import com.geeks.mybank.data.model.AccountState
 import com.geeks.mybank.data.network.ApiClient
 import retrofit2.Call
 import retrofit2.Callback
@@ -25,6 +26,45 @@ class AccountPresenter(private val view: AccountContract.View): AccountContract.
         ApiClient.accountApi.addAccount(account).enqueue(object: Callback<Unit>{
             override fun onResponse(call: Call<Unit>, response: Response<Unit>) {
                 loadAccounts()
+            }
+
+            override fun onFailure(call: Call<Unit>, t: Throwable) {
+                TODO("Not yet implemented")
+            }
+
+        })
+    }
+
+    override fun deleteAccounts(accountId: String) {
+        ApiClient.accountApi.deleteAccount(accountId).enqueue(object: Callback<Unit>{
+            override fun onResponse(call: Call<Unit>, response: Response<Unit>) {
+                loadAccounts()
+            }
+
+            override fun onFailure(call: Call<Unit>, t: Throwable) {
+                TODO("Not yet implemented")
+            }
+
+        })
+    }
+
+    override fun updateAccountsFully(account: Account) {
+        ApiClient.accountApi.updateAccountFully(account.id ?: "", account).enqueue(object: Callback<Unit>{
+            override fun onResponse(call: Call<Unit>, response: Response<Unit>) {
+                loadAccounts()
+            }
+
+            override fun onFailure(call: Call<Unit>, t: Throwable) {
+                TODO("Not yet implemented")
+            }
+
+        })
+    }
+
+    override fun patchAccountStatus(accountId: String, isActive: Boolean) {
+        ApiClient.accountApi.patchAccountStatus(accountId, AccountState(isActive)).enqueue(object: Callback<Unit>{
+            override fun onResponse(call: Call<Unit>, response: Response<Unit>) {
+
             }
 
             override fun onFailure(call: Call<Unit>, t: Throwable) {

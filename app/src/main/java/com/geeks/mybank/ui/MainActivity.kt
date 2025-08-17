@@ -40,7 +40,17 @@ class MainActivity : AppCompatActivity(), AccountContract.View {
     }
 
     private fun initAdapter() = with(binding){
-        adapter = AccountAdapter()
+        adapter = AccountAdapter(
+            onDelete = {id ->
+                presenter.deleteAccounts(id)
+            },
+            onEdit = {account ->
+                showEditDialog(account)
+            },
+            onStatusToggle = {id, isChecked -> Unit
+                presenter.patchAccountStatus(id, isChecked)
+            }
+        )
         recyclerView.layoutManager = LinearLayoutManager(this@MainActivity)
         recyclerView.adapter = adapter
     }
@@ -74,6 +84,37 @@ class MainActivity : AppCompatActivity(), AccountContract.View {
                     )
 
                     presenter.addAccounts(account)
+
+                }
+
+                .setNegativeButton("Отмена", null)
+                .show()
+        }
+    }
+
+    private fun showEditDialog(account: Account ){
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_account, null)
+        with(dialogView){
+            val nameInput = findViewById<EditText>(R.id.etName)
+            val balanceInput = findViewById<EditText>(R.id.etBalance)
+            val currencyInput = findViewById<EditText>(R.id.etCurrency)
+
+            nameInput.setText(account.name)
+            balanceInput.setText(account.balance.toString())
+            currencyInput.setText(account.currency)
+
+            AlertDialog.Builder(this@MainActivity)
+                .setTitle("Редактировать счет")
+                .setView(this)
+                .setPositiveButton("Обновить"){_,_, ->
+
+                    val updateAccount = account.copy(
+                        name = nameInput.text.toString(),
+                        balance = balanceInput.text.toString().toInt(),
+                        currency = currencyInput.text.toString(),
+                    )
+
+                    presenter.updateAccountsFully(updateAccount)
 
                 }
 

@@ -3,12 +3,18 @@ package com.geeks.mybank.ui.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
+import androidx.appcompat.widget.SwitchCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.geeks.mybank.R
 import com.geeks.mybank.data.model.Account
 
-class AccountAdapter: RecyclerView.Adapter<AccountAdapter.AccountViewHolder>() {
+class AccountAdapter(
+    val onDelete: (String) -> Unit,
+    val onEdit: (Account) -> Unit,
+    val onStatusToggle: (String, Boolean) -> Unit
+): RecyclerView.Adapter<AccountAdapter.AccountViewHolder>() {
 
     private val items = mutableListOf<Account>()
 
@@ -33,6 +39,19 @@ class AccountAdapter: RecyclerView.Adapter<AccountAdapter.AccountViewHolder>() {
         fun bind(account: Account) = with(itemView){
             findViewById<TextView>(R.id.tv_name).text = account.name
             findViewById<TextView>(R.id.tv_balance).text = "${account.balance} ${account.currency}"
+            findViewById<Button>(R.id.btnEdit).setOnClickListener {
+                onEdit(account)
+            }
+            findViewById<Button>(R.id.btnDel).setOnClickListener {
+                account.id?.let{ onDelete(it)}
+            }
+
+            findViewById<SwitchCompat>(R.id.switch_active).apply {
+                isChecked = account.isActive
+                setOnCheckedChangeListener { buttonView, isChecked ->
+                    account.id?.let{onStatusToggle(it, isChecked)}
+                }
+            }
 
         }
     }
