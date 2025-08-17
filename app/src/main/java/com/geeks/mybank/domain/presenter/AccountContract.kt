@@ -9,5 +9,6 @@ interface AccountContract {
 
     interface Presenter{
         fun loadAccounts()
+        fun addAccounts(account: Account)
     }
 }
