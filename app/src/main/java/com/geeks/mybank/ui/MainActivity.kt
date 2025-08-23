@@ -3,26 +3,25 @@ package com.geeks.mybank.ui
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.EditText
-import androidx.activity.enableEdgeToEdge
+import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.ViewModel
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.geeks.mybank.R
 import com.geeks.mybank.data.model.Account
 import com.geeks.mybank.databinding.ActivityMainBinding
-import com.geeks.mybank.domain.presenter.AccountContract
-import com.geeks.mybank.domain.presenter.AccountPresenter
 import com.geeks.mybank.ui.adapter.AccountAdapter
+import com.geeks.mybank.ui.viewmodel.AccountViewModel
 
-class MainActivity : AppCompatActivity(), AccountContract.View {
+class MainActivity : AppCompatActivity(){
 
     private var _binding: ActivityMainBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var adapter: AccountAdapter
-    private lateinit var presenter: AccountContract.Presenter
+    private val viewModel: AccountViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,25 +29,25 @@ class MainActivity : AppCompatActivity(), AccountContract.View {
         setContentView(binding.root)
         initAdapter()
         initClicks()
+        subscribeToLiveData()
 
-        presenter = AccountPresenter(this)
     }
 
     override fun onResume() {
         super.onResume()
-        presenter.loadAccounts()
+        viewModel.loadAccounts()
     }
 
     private fun initAdapter() = with(binding){
         adapter = AccountAdapter(
             onDelete = {id ->
-                presenter.deleteAccounts(id)
+                viewModel.deleteAccounts(id)
             },
             onEdit = {account ->
                 showEditDialog(account)
             },
             onStatusToggle = {id, isChecked -> Unit
-                presenter.patchAccountStatus(id, isChecked)
+                viewModel.patchAccountStatus(id, isChecked)
             }
         )
         recyclerView.layoutManager = LinearLayoutManager(this@MainActivity)
@@ -59,9 +58,17 @@ class MainActivity : AppCompatActivity(), AccountContract.View {
         btnAdd.setOnClickListener{showAddDialog()}
     }
 
-    override fun showAccounts(list: List<Account>) {
-        adapter.submitList(list)
-
+    private fun subscribeToLiveData(){
+        viewModel.accounts.observe(this){
+            adapter.submitList(it)
+        }
+        viewModel.errorMessage.observe(this) { error ->
+            AlertDialog.Builder(this)
+                .setTitle("Ошибка")
+                .setMessage(error)
+                .setPositiveButton("OK", null)
+                .show()
+        }
     }
 
     private fun showAddDialog(){
@@ -83,7 +90,7 @@ class MainActivity : AppCompatActivity(), AccountContract.View {
                         isActive = true
                     )
 
-                    presenter.addAccounts(account)
+                    viewModel.addAccounts(account)
 
                 }
 
@@ -114,8 +121,7 @@ class MainActivity : AppCompatActivity(), AccountContract.View {
                         currency = currencyInput.text.toString(),
                     )
 
-                    presenter.updateAccountsFully(updateAccount)
-
+                    viewModel.updateAccountsFully(updateAccount)
                 }
 
                 .setNegativeButton("Отмена", null)
