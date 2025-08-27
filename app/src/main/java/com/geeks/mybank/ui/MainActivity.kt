@@ -14,7 +14,9 @@ import com.geeks.mybank.data.model.Account
 import com.geeks.mybank.databinding.ActivityMainBinding
 import com.geeks.mybank.ui.adapter.AccountAdapter
 import com.geeks.mybank.ui.viewmodel.AccountViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity(){
 
     private var _binding: ActivityMainBinding? = null
@@ -68,6 +70,9 @@ class MainActivity : AppCompatActivity(){
                 .setMessage(error)
                 .setPositiveButton("OK", null)
                 .show()
+        }
+        viewModel.successMessage.observe(this) { message ->
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         }
     }
 
