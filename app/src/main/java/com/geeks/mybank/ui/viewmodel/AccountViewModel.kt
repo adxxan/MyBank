@@ -5,13 +5,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.geeks.mybank.data.model.Account
 import com.geeks.mybank.data.model.AccountState
-import com.geeks.mybank.data.network.ApiClient
+import com.geeks.mybank.data.network.AccountApi
+import dagger.hilt.android.lifecycle.HiltViewModel
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import javax.inject.Inject
 
-
-class AccountViewModel: ViewModel() {
+@HiltViewModel
+class AccountViewModel @Inject constructor(
+    private val accountApi: AccountApi
+): ViewModel() {
 
     private val _accounts = MutableLiveData<List<Account>>()
     val accounts: LiveData<List<Account>> = _accounts
@@ -19,40 +23,52 @@ class AccountViewModel: ViewModel() {
     private val _errorMessage = MutableLiveData<String>()
     val errorMessage: LiveData<String> = _errorMessage
 
+    private val _successMessage = MutableLiveData<String>()
+    val successMessage: LiveData<String> = _successMessage
+
+
     fun loadAccounts() {
-        ApiClient.accountApi.getAccounts().handleResponce(
+        accountApi.getAccounts().handleResponce(
             onSuccess = {_accounts.value = it},
             onError = {errorMsg -> _errorMessage.value = errorMsg}
         )
     }
 
     fun addAccounts(account: Account) {
-        ApiClient.accountApi.addAccount(account).handleResponce(
+        accountApi.addAccount(account).handleResponce(
             onSuccess = {loadAccounts()},
             onError = {errorMsg -> _errorMessage.value = errorMsg}
         )
     }
 
     fun deleteAccounts(accountId: String) {
-        ApiClient.accountApi.deleteAccount(accountId).handleResponce(
+        accountApi.deleteAccount(accountId).handleResponce(
             onSuccess = {loadAccounts()},
             onError = {errorMsg -> _errorMessage.value = errorMsg}
         )
     }
 
     fun updateAccountsFully(account: Account) {
-        ApiClient.accountApi.updateAccountFully(account.id ?: "", account).handleResponce(
+        accountApi.updateAccountFully(account.id ?: "", account).handleResponce(
             onSuccess = {loadAccounts()},
             onError = {errorMsg -> _errorMessage.value = errorMsg}
         )
     }
 
     fun patchAccountStatus(accountId: String, isActive: Boolean) {
-        ApiClient.accountApi.patchAccountStatus(accountId, AccountState(isActive)).handleResponce(
-            onSuccess = {loadAccounts()},
-            onError = {errorMsg -> _errorMessage.value = errorMsg}
+        accountApi.patchAccountStatus(accountId, AccountState(isActive)).handleResponce(
+            onSuccess = {
+                loadAccounts()
+                _successMessage.value = if (isActive) {
+                    "Счёт активирован"
+                } else {
+                    "Счёт деактивирован"
+                }
+            },
+            onError = { errorMsg -> _errorMessage.value = errorMsg }
         )
     }
+
 
     fun <T> Call<T>.handleResponce(
         onSuccess: (T) -> Unit,
