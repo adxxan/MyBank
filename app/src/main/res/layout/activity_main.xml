@@ -15,4 +15,14 @@
         android:id="@+id/recycler_view"
         tools:listitem="@layout/item_account"/>
 
+    <Button
+        android:id="@+id/btnAdd"
+        android:text="Добавить счет"
+        android:layout_margin="16dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
